@@ -1,0 +1,63 @@
+; ============================================================================
+; approach.mdp — STAGE 0: gently bring His41 Ne2 toward the leaving N.
+; Holds the tetrahedral intermediate (SG-C, C-N) fixed; draws His Ne2 -> Ser N
+; with a MODERATE spring so the imidazole can reorient WITHOUT ripping atoms.
+; The energy vs His-N distance = the COST of making the pose competent (GATE 0).
+; APPROACH_DIST is substituted per step by run_stage0.sh.
+; ============================================================================
+integrator               = steep
+nsteps                   = 800
+emtol                    = 100.0
+emstep                   = 0.005
+nstxout                  = 50         ; CRASH RECOVERY: saves frames every 50 steps -> trjconv can extract last geometry
+nstenergy                = 10
+nstlog                   = 10
+cutoff-scheme            = Verlet
+nstlist                  = 10
+rcoulomb                 = 1.2
+rvdw                     = 1.2
+coulombtype              = PME
+pme-order                = 4
+fourierspacing           = 0.16
+constraints              = none
+
+qmmm-cp2k-active         = true
+qmmm-cp2k-qmgroup        = QMatoms_Mpro
+qmmm-cp2k-qmmethod       = PBE
+qmmm-cp2k-qmcharge       = 0
+qmmm-cp2k-qmmultiplicity = 1
+
+pull                     = yes
+pull-ngroups             = 4
+pull-ncoords             = 3
+pull-group1-name         = Cys145_SG_pull   ; 2243
+pull-group2-name         = P1Gln_C          ; 9454
+pull-group3-name         = P1prime_N        ; 9456  (leaving N)
+pull-group4-name         = His41_NE2        ; 617   (proton donor)
+
+; CV1: hold SG-C at the tetrahedral-intermediate value (keep the thioether)
+pull-coord1-type         = umbrella
+pull-coord1-geometry     = distance
+pull-coord1-groups       = 1 2
+pull-coord1-dim          = Y Y Y
+pull-coord1-k            = 20000000
+pull-coord1-init         = 0.180
+pull-coord1-rate         = 0
+; CV2: hold C-N at the tetrahedral-intermediate value (amide still intact)
+pull-coord2-type         = umbrella
+pull-coord2-geometry     = distance
+pull-coord2-groups       = 2 3
+pull-coord2-dim          = Y Y Y
+pull-coord2-k            = 20000000
+pull-coord2-init         = 0.150
+pull-coord2-rate         = 0
+; CV3: DRIVE His Ne2 toward leaving N — MODERATE spring (gentle reorientation)
+pull-coord3-type         = umbrella
+pull-coord3-geometry     = distance
+pull-coord3-groups       = 4 3
+pull-coord3-dim          = Y Y Y
+pull-coord3-k            = 150000            ; moderate: ~1/130th of the stiff springs
+pull-coord3-init         = APPROACH_DIST
+pull-coord3-rate         = 0
+pull-nstxout             = 10
+pull-nstfout             = 10

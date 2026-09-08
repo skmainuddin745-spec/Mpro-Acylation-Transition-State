@@ -1,0 +1,65 @@
+; ============================================================================
+; scan_cleave.mdp — STAGE 1: locate the acylation TS (C-N cleavage concerted
+; with His41 -> leaving-N proton transfer). Runs ONLY from a GATE-0 pose.
+;   CV1: hold SG-C at 0.18 nm (the forming acyl-enzyme thioether)
+;   CV2: hold His Ne2 .. leaving N at 0.29 nm (keep the proton donor poised)
+;   CV3: DRIVE C-N (the breaking bond) = the reaction coordinate
+;   The proton (His HE2) is FREE -> it transfers to the leaving N as C-N breaks.
+; CN_DIST is substituted per grid point by run_stage1.sh.
+; ============================================================================
+integrator               = steep
+nsteps                   = 800
+emtol                    = 100.0
+emstep                   = 0.005
+nstxout                  = 50         ; CRASH RECOVERY: saves frames every 50 steps -> trjconv can extract last geometry
+nstenergy                = 10
+nstlog                   = 10
+cutoff-scheme            = Verlet
+nstlist                  = 10
+rcoulomb                 = 1.2
+rvdw                     = 1.2
+coulombtype              = PME
+pme-order                = 4
+fourierspacing           = 0.16
+constraints              = none
+
+qmmm-cp2k-active         = true
+qmmm-cp2k-qmgroup        = QMatoms_Mpro
+qmmm-cp2k-qmmethod       = PBE
+qmmm-cp2k-qmcharge       = 0
+qmmm-cp2k-qmmultiplicity = 1
+
+pull                     = yes
+pull-ngroups             = 4
+pull-ncoords             = 3
+pull-group1-name         = Cys145_SG_pull   ; 2243
+pull-group2-name         = P1Gln_C          ; 9454
+pull-group3-name         = P1prime_N        ; 9456
+pull-group4-name         = His41_NE2        ; 617
+
+; CV1: hold SG-C (thioether of the acyl-enzyme)
+pull-coord1-type         = umbrella
+pull-coord1-geometry     = distance
+pull-coord1-groups       = 1 2
+pull-coord1-dim          = Y Y Y
+pull-coord1-k            = 20000000
+pull-coord1-init         = 0.180
+pull-coord1-rate         = 0
+; CV2: keep His Ne2 poised near the leaving N (moderate)
+pull-coord2-type         = umbrella
+pull-coord2-geometry     = distance
+pull-coord2-groups       = 4 3
+pull-coord2-dim          = Y Y Y
+pull-coord2-k            = 300000
+pull-coord2-init         = 0.290
+pull-coord2-rate         = 0
+; CV3: DRIVE C-N (the breaking bond) = reaction coordinate
+pull-coord3-type         = umbrella
+pull-coord3-geometry     = distance
+pull-coord3-groups       = 2 3
+pull-coord3-dim          = Y Y Y
+pull-coord3-k            = 20000000
+pull-coord3-init         = CN_DIST
+pull-coord3-rate         = 0
+pull-nstxout             = 10
+pull-nstfout             = 10
